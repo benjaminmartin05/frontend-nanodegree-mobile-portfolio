@@ -442,6 +442,10 @@ var resizePizzas = function(size) {
     changeSliderLabel(size);
 
     // Changes the slider value to a percent width
+    // Changed sizeSwitcher function to give a % newWidth instead of returning a number and then having to convert it to a % in another
+    // function. Then selected all the randomPizza outside of the for loop and placed in a variable. This keeps them from having to be
+    // pulled over and over every time the previous function with the for loop ran.
+    // I then loop over the variable of all the random pizzas and change the width to the newWidth.
     function sizeSwitcher(size) {
         switch (size) {
             case "1":
