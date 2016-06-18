@@ -462,7 +462,7 @@ var resizePizzas = function(size) {
         }
 
 
-        var randomPizzas = document.querySelectorAll(".randomPizzaContainer");
+        var randomPizzas = document.getElementsByClassName("randomPizzaContainer");
         // Iterates through pizza elements on the page and changes their widths
         for (var i = 0; i < randomPizzas.length; i++) {
             randomPizzas[i].style.width = newWidth + "%";
@@ -515,13 +515,17 @@ function updatePositions() {
     window.performance.mark("mark_start_frame");
 
     var items = document.querySelectorAll('.mover');
-    //'phase' variable in updatePositions() function was causing a lot of jank in the frame rates. Instead of creating this number
-    // with 'phase' and placing it in the formula for items[i].style.left, I used Math.random() * 3 to produce a number equivalent
-    //to the original background pizza movement when scrolling. This lowers the amount of time to generate pizzas from around
-    //115ms to less than 2ms.
+    //'phase' variable in updatePositions() function was causing a lot of jank in the frame rates.
+    //I took the document.body.scrollTop/1250 section out of the for loop so that it wasn't having
+    //to calculate this each time the loop ran.
+    var scroll = document.body.scrollTop / 1250;
     for (var i = 0; i < items.length; i++) {
-        // var phase = Math.sin((document.body.scrollTop / 1250) + (i % 5));
-        items[i].style.left = items[i].basicLeft + 100 * Math.random() * 3 + 'px';
+        var phase = Math.sin(scroll + (i % 5));
+        //used .transform instead of .left to change the position of the pizza
+        // without disrupting the normal document flow. Doin this put all the pizzas
+        //on the right side of the page during full screen viewing. I fixed the problem
+        //by adding left:0px; after position: fixed; on the .mover class in styles.css
+        items[i].style.transform = "translateX(" + ((i % 8) * 256 + (100 * phase)) +"px)";
     }
 
     // User Timing API to the rescue again. Seriously, it's worth learning.
@@ -541,10 +545,18 @@ window.addEventListener('scroll', updatePositions);
 document.addEventListener('DOMContentLoaded', function() {
     var cols = 8;
     var s = 256;
-    for (var i = 0; i < 200; i++) {
+    //I originally had the for loop below set to i<200.
+    // Since updatePosition runs about 10x per
+    // second (as the user scrolls), that adds up to
+    // 2000 calculations per second not including the
+    // repaint of the un-rendered pizzas. I found that i<24 will
+    // create enough pizzas to have the same visualization as before
+    // while scrolling with only 240 calculations.
+    for (var i = 0; i < 24; i++) {
         var elem = document.createElement('img');
         elem.className = 'mover';
         elem.src = "images/pizza.png";
+        elem.style.left = i.basicLeft;
         elem.style.height = "100px";
         elem.style.width = "73.333px";
         elem.basicLeft = (i % cols) * s;

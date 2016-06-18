@@ -17,10 +17,20 @@ This allowed the page speed insights score to be 90 desktop and 77 for mobile.
 
 ###Update moving pizzas in the background:
 
-'phase' variable in updatePositions() function was causing a lot of jank in the frame rates. Instead of creating this number
-with 'phase' and placing it in the formula for items[i].style.left, I used Math.random() * 3 to produce a number equivalent
-to the original background pizza movement when scrolling. This lowers the amount of time to generate pizzas from around
-115ms to less than 2ms.
+'phase' variable in updatePositions() function was causing a lot of jank in the frame rates.
+I took the document.body.scrollTop/1250 section out of the for loop so that it wasn't having
+to calculate this each time the loop ran.
+
+In updatePositions(), I then used .transform instead of .left to change the position of the pizza
+without disrupting the normal document flow. Doing this put all the pizzas
+on the right side of the page during full screen viewing. I fixed the problem
+by adding left:0px; after position: fixed; on the .mover class in styles.css.
+
+Finally, I was rendering many pizzas that were having to be painted, but couldn't be seen.
+In document.addEventListener('DOMContentLoaded', function()), I originally had the for loop below set to i<200.
+Since updatePosition runs about 10x per second (as the user scrolls), that adds up to 2000 calculations per second
+not including the repaint of the un-rendered pizzas. I found that i<24 will create enough pizzas to have the
+same visualization as before while scrolling with only 240 calculations.
 
 ###Update the slider controlling the size of the pizzas
 

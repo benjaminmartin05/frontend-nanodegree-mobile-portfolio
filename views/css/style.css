@@ -28,9 +28,11 @@ form {
 #pizzaSize {
   font-weight: 800;
 }
-
+/*left:0px added so that pizzas show up on entire screen instead of only the right half
+in full page view*/
 .mover {
   position: fixed;
+  left: 0px;
   width: 256px;
   z-index: -1;
 }
