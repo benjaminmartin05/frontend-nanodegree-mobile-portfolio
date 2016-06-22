@@ -1,55 +1,37 @@
-## Website Performance Optimization portfolio project
+###How to run the application:
+1.Enter 'http://benjaminmartin05.github.io/frontend-nanodegree-mobile-portfolio/' into browser.
+2.Click on 'Cam's Pizzeria ' to see updates made to the webpage.
 
-Your challenge, if you wish to accept it (and we sure hope you will), is to optimize this online portfolio for speed! In particular, optimize the critical rendering path and make this page render as quickly as possible by applying the techniques you've picked up in the [Critical Rendering Path course](https://www.udacity.com/course/ud884).
+###Steps to Optimize pagespeed insights:
 
-To get started, check out the repository and inspect the code.
+1.Ran jpeg optimizer and jpegtran on profilepic and pizzeria.jpg to minimize files.
+This allowed the page speed insights score to be 90 desktop and 77 for mobile.
 
-### Getting started
+2.Removed render blocking js by using async tag on google analytics script...doesn't change page speed insights score
 
-####Part 1: Optimize PageSpeed Insights score for index.html
+3.Removed googleapis fonts link from page. Page speed insights increased 77 to 82 mobile and 90 to 92 desktop.
 
-Some useful tips to help you get started:
+4.Used media="print" tag on print.css link in index to delay print from render blocking until its needed for print..mobile 82 to 87 and desktop 92 to 94 page speed insights.
 
-1. Check out the repository
-1. To inspect the site on your phone, you can run a local server
+5.Created an inlined style sheet in index.html with style.css. mobile page speed increase 87 to 95 and desktop 94 to 97.
 
-  ```bash
-  $> cd /path/to/your-project-folder
-  $> python -m SimpleHTTPServer 8080
-  ```
+###Update moving pizzas in the background:
 
-1. Open a browser and visit localhost:8080
-1. Download and install [ngrok](https://ngrok.com/) to make your local server accessible remotely.
+'phase' variable in updatePositions() function was causing a lot of jank in the frame rates.
+I took the document.body.scrollTop/1250 section out of the for loop so that it wasn't having
+to calculate this each time the loop ran.
 
-  ``` bash
-  $> cd /path/to/your-project-folder
-  $> ngrok http 8080
-  ```
+In updatePositions(), I then used .transform instead of .left to change the position of the pizza
+without disrupting the normal document flow. Doing this put all the pizzas
+on the right side of the page during full screen viewing. I fixed the problem
+by adding left:0px; after position: fixed; on the .mover class in styles.css.
 
-1. Copy the public URL ngrok gives you and try running it through PageSpeed Insights! Optional: [More on integrating ngrok, Grunt and PageSpeed.](http://www.jamescryer.com/2014/06/12/grunt-pagespeed-and-ngrok-locally-testing/)
+Finally, I was rendering many pizzas that were having to be painted, but couldn't be seen.
+In document.addEventListener('DOMContentLoaded', function()), I originally had the for loop below set to i<200.
+Since updatePosition runs about 10x per second (as the user scrolls), that adds up to 2000 calculations per second
+not including the repaint of the un-rendered pizzas. I found that i<24 will create enough pizzas to have the
+same visualization as before while scrolling with only 240 calculations.
 
-Profile, optimize, measure... and then lather, rinse, and repeat. Good luck!
+###Update the slider controlling the size of the pizzas
 
-####Part 2: Optimize Frames per Second in pizza.html
-
-To optimize views/pizza.html, you will need to modify views/js/main.js until your frames per second rate is 60 fps or higher. You will find instructive comments in main.js. 
-
-You might find the FPS Counter/HUD Display useful in Chrome developer tools described here: [Chrome Dev Tools tips-and-tricks](https://developer.chrome.com/devtools/docs/tips-and-tricks).
-
-### Optimization Tips and Tricks
-* [Optimizing Performance](https://developers.google.com/web/fundamentals/performance/ "web performance")
-* [Analyzing the Critical Rendering Path](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/analyzing-crp.html "analyzing crp")
-* [Optimizing the Critical Rendering Path](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/optimizing-critical-rendering-path.html "optimize the crp!")
-* [Avoiding Rendering Blocking CSS](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/render-blocking-css.html "render blocking css")
-* [Optimizing JavaScript](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/adding-interactivity-with-javascript.html "javascript")
-* [Measuring with Navigation Timing](https://developers.google.com/web/fundamentals/performance/critical-rendering-path/measure-crp.html "nav timing api"). We didn't cover the Navigation Timing API in the first two lessons but it's an incredibly useful tool for automated page profiling. I highly recommend reading.
-* <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/eliminate-downloads.html">The fewer the downloads, the better</a>
-* <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/optimize-encoding-and-transfer.html">Reduce the size of text</a>
-* <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/image-optimization.html">Optimize images</a>
-* <a href="https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching.html">HTTP caching</a>
-
-### Customization with Bootstrap
-The portfolio was built on Twitter's <a href="http://getbootstrap.com/">Bootstrap</a> framework. All custom styles are in `dist/css/portfolio.css` in the portfolio repo.
-
-* <a href="http://getbootstrap.com/css/">Bootstrap's CSS Classes</a>
-* <a href="http://getbootstrap.com/components/">Bootstrap's Components</a>
+Changed sizeSwitcher function to give a % newWidth instead of returning a number and then having to convert it to a % in another function. Then selected all the randomPizza outside of the for loop and placed in a variable. This keeps them from having to be pulled over and over every time the previous function with the for loop ran. I then loop over the variable of all the random pizzas and change the width to the newWidth.

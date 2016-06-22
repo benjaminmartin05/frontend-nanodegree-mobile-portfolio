@@ -508,6 +508,15 @@ function logAverageFrame(times) { // times is the array of User Timing measureme
 
 // The following code for sliding background pizzas was pulled from Ilya's demo found at:
 // https://www.igvita.com/slides/2012/devtools-tips-and-tricks/jank-demo.html
+var rAF = false; // tells browser not to animate
+window.addEventListener('scroll', requestAnimation);
+
+function requestAnimation() {
+    if (!rAF) {
+        window.requestAnimationFrame(updatePositions);
+        rAF = true;
+    }
+};
 
 // Moves the sliding background pizzas based on scroll position
 function updatePositions() {
@@ -519,6 +528,7 @@ function updatePositions() {
     //I took the document.body.scrollTop/1250 section out of the for loop so that it wasn't having
     //to calculate this each time the loop ran.
     var scroll = document.body.scrollTop / 1250;
+
     for (var i = 0; i < items.length; i++) {
         var phase = Math.sin(scroll + (i % 5));
         //used .transform instead of .left to change the position of the pizza
@@ -536,27 +546,26 @@ function updatePositions() {
         var timesToUpdatePosition = window.performance.getEntriesByName("measure_frame_duration");
         logAverageFrame(timesToUpdatePosition);
     }
+    rAF = false;
 }
-
-// runs updatePositions on scroll
-window.addEventListener('scroll', updatePositions);
 
 // Generates the sliding pizzas when the page loads.
 document.addEventListener('DOMContentLoaded', function() {
-    var cols = 8;
-    var s = 256;
+    var cols = 8;//amount of pizzas in a row
+    var s = 256;//128 puts pizzas on only half the visible page, this is a spacing var
     //I originally had the for loop below set to i<200.
     // Since updatePosition runs about 10x per
     // second (as the user scrolls), that adds up to
     // 2000 calculations per second not including the
-    // repaint of the un-rendered pizzas. I found that i<24 will
+    // repaint of the un-rendered pizzas. I found that i<pizzasAllowed will
     // create enough pizzas to have the same visualization as before
-    // while scrolling with only 240 calculations.
-    for (var i = 0; i < 24; i++) {
+    // while scrolling with fewer calculations.
+    //you can calculate how many pizzas can fit on the screen using window.innerHeight
+    var pizzasAllowed = window.innerHeight / s * cols;
+    for (var i = 0; i < pizzasAllowed ; i++) {
         var elem = document.createElement('img');
         elem.className = 'mover';
         elem.src = "images/pizza.png";
-        elem.style.left = i.basicLeft;
         elem.style.height = "100px";
         elem.style.width = "73.333px";
         elem.basicLeft = (i % cols) * s;
